@@ -58,7 +58,8 @@ def main [] {
         assert equal $no_names.stdout ''
         let installer = ($package | path join 'install.nu')
         let linked_home = ($fixture | path join 'linked-home')
-        for attempt in 1..2 {
+        let attempts = (if $nu.os-info.name == 'windows' { [1] } else { [1 2] })
+        for attempt in $attempts {
             let installed = (^nu --no-config-file $installer --home $linked_home | complete)
             assert equal $installed.exit_code 0
         }
@@ -69,7 +70,12 @@ def main [] {
             '.gemini/config/skills' '.gemini/antigravity/skills' '.gemini/antigravity-cli/skills']
         for destination in $destinations {
             assert equal (open --raw ($copied_home | path join $destination 'nu/SKILL.md')) (open --raw ($package | path join 'SKILL.md'))
-            assert equal (($linked_home | path join $destination 'nu' | path expand)) $package
+            assert equal ($copied_home | path join $destination 'nu/.git' | path exists --no-symlink) false
+            if $nu.os-info.name != 'windows' {
+                assert equal (($linked_home | path join $destination 'nu' | path expand)) $package
+            } else {
+                assert equal (open --raw ($linked_home | path join $destination 'nu/SKILL.md')) (open --raw ($package | path join 'SKILL.md'))
+            }
         }
         let refused = (^nu --no-config-file $installer --copy --home $copied_home | complete)
         assert ($refused.exit_code != 0)
