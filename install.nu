@@ -1,3 +1,4 @@
+#!/usr/bin/env nu
 # Install this checkout for the current user. Use --home only for testing/custom homes.
 def main [
     --copy # Copy rather than symlink; rerun after pulling updates.
