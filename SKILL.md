@@ -1,6 +1,6 @@
 ---
 name: nu
-description: Translate Bash, POSIX sh, Zsh, Fish, PowerShell, or other shell commands and programs into Nushell, or write Nushell from a plain-language request. Offer idiomatic structured output and a plain-text or byte-compatible alternative when useful. Use for /nu, $nu, shell-to-Nu conversions, and requests to express a task in Nushell.
+description: Translate Bash, POSIX sh, Zsh, Fish, PowerShell, or other shell commands and programs into Nushell, or write Nushell from a plain-language request. Show a plain-text command, a simple native Nu command, and a closer native translation when it differs. Use for /nu, $nu, shell-to-Nu conversions, and requests to express a task in Nushell.
 ---
 
 # Nu
@@ -10,10 +10,14 @@ Translate the supplied command, program, or human-language request into executab
 ## Deliver the translation
 
 - Infer the source shell when clear; mention assumptions that change behavior. Ask only when ambiguity materially affects correctness. For a natural-language request, implement its intended operation directly in Nu; a Bash intermediate is unnecessary.
-- Lead with a fenced `nu` block using native values, records, tables, and typed pipelines where appropriate. Translate complete programs, including functions, parameters, control flow, file operations, and error handling, rather than only their first pipeline. For a long program, return a complete `.nu` artifact if file creation was requested or is appropriate.
-- Where useful, include a second fenced `nu` block labeled **Plain-text output**. This is still Nushell code, but emits the lines or bytes a traditional shell consumer expects. Both alternatives perform the same task; explain any difference in exit status, formatting, order, whitespace, or filenames. If output is already plain text or there is no output, one version suffices. Honor a request for only one mode.
+- For a source shell command, show alternatives in this order: **Plain text**, **Simple Nu**, and **Closer match** when it differs from Simple Nu. Label each fenced `nu` block. The plain-text alternative should normally invoke the original external commands with `^` so their output remains a text or byte stream, for example `^find . -type f -name '*.log' | ^sort`. Mention the executable dependency when it matters. If the original command is already native Nu, or has no useful external-command form, omit the redundant plain-text alternative and say why briefly. Honor a request for only one mode.
+- Make **Simple Nu** the shortest idiomatic command that captures the user's general intent, using native values, records, tables, and typed pipelines where appropriate. For example, `glob '**/*.log' | sort` is a concise answer to “find and sort log files.” Translate complete programs, including functions, parameters, control flow, file operations, and error handling, rather than only their first pipeline. For a long program, return a complete `.nu` artifact if file creation was requested or is appropriate.
+- Show **Closer match** whenever a native translation can preserve relevant behavior that Simple Nu changes, even if the user did not ask for an exact conversion. Preserve concrete details where possible, such as file type, hidden entries, symlink traversal, relative-path prefixes, sorting rules, and exit status. Do not label an approximation “Exact match.” State remaining differences briefly and specifically, including any that the closer version cannot eliminate. Omit this alternative when it would be identical to Simple Nu.
+
 - State necessary dependencies and meaningful semantic differences briefly. Do not silently replace unsupported shell behavior with something approximate, or present a `bash -c` wrapper as a native conversion. A clearly labeled source-shell fallback is acceptable when faithful native translation is unavailable.
 - Conversion alone does not request execution of the supplied operation. Verify syntax and representative behavior on harmless fixtures when Nu is available; say what was actually checked. Otherwise label the result untested. Avoid secrets and live mutations when validating.
+
+For `find . -type f -name '*.log' | sort`, the three blocks should start with `^find . -type f -name '*.log' | ^sort`, `glob '**/*.log' | sort`, and a closer native pipeline using `glob '**/*.log' --no-dir --no-symlink`, `each` to add the `./` prefix, and `sort`. Explain that globbing hidden paths and Nu's sorting may still differ from `find | sort`.
 
 ## Preserve semantics, not spelling
 
